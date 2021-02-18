@@ -37,9 +37,6 @@ namespace SmartSchool_Server
                     .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling =
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-            services.AddScoped<IRepository, Repository>();
-            services.AddCors();
-
             services.AddMvc(options =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -48,14 +45,27 @@ namespace SmartSchool_Server
                 options.Filters.Add(new AuthorizeFilter(policy));
             });
 
+            services.AddCors();
+
             //Entity Framework
             services.AddDbContext<DataContext>(opt
                 => opt.UseSqlServer(Configuration.GetConnectionString("DefaultConn")));
+
+            services.AddScoped<IRepository, Repository>();
 
             // for Identity
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<DataContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddIdentityCore<User>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 4;
+            });
 
             //Adding Authentication
             services.AddAuthentication(opt =>
